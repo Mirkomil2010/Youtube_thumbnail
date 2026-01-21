@@ -12,6 +12,13 @@ import {
   ImageDown
 } from "lucide-react";
 
+/**
+ * HomePage component that allows users to download YouTube thumbnails.
+ * Provides functionality to preview and download thumbnails in different qualities.
+ * 
+ * @component
+ * @returns {JSX.Element} The rendered home page
+ */
 export default function HomePage() {
   const [url, setUrl] = useState("");
   const [thumbnail, setThumbnail] = useState(null);
@@ -37,11 +44,29 @@ export default function HomePage() {
     return () => clearInterval(typingInterval);
   }, []);
 
+  // Check for shared URL parameters
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const v = params.get("v");
+    if (v) {
+      const sharedUrl = `https://www.youtube.com/watch?v=${v}`;
+      setUrl(sharedUrl);
+      handleGetThumbnail(sharedUrl);
+    }
+  }, []);
+
   // Reset quality when URL changes
   useEffect(() => {
     if (!url) setThumbnail(null);
   }, [url]);
 
+  /**
+   * Extracts the YouTube video ID from a given URL.
+   * Supports various YouTube URL formats including short links and embedded URLs.
+   * 
+   * @param {string} inputUrl - The YouTube URL input by the user
+   * @returns {string|boolean} The video ID if found, otherwise false
+   */
   const extractVideoId = (inputUrl) => {
     try {
       if (!inputUrl) return false;
@@ -53,7 +78,14 @@ export default function HomePage() {
     }
   };
 
-  const handleGetThumbnail = async () => {
+  /**
+   * Handles the retrieval of the thumbnail based on the user's input URL.
+   * Checks for valid video ID and attempts to load the thumbnail image.
+   * Sets appropriate error or success states.
+   */
+  const handleGetThumbnail = async (inputUrl) => {
+    const targetUrl = typeof inputUrl === 'string' ? inputUrl : url;
+
     setError("");
     setThumbnail(null);
     setLoading(true);
@@ -61,7 +93,7 @@ export default function HomePage() {
     // Simulate short network delay for better UX
     await new Promise(resolve => setTimeout(resolve, 500));
 
-    const videoId = extractVideoId(url);
+    const videoId = extractVideoId(targetUrl);
 
     if (videoId) {
       // We start by trying the user's selected quality, but we might need to fallback if it doesn't exist
@@ -94,6 +126,10 @@ export default function HomePage() {
     }
   };
 
+  /**
+   * Downloads the currently displayed thumbnail image.
+   * Fetches the image as a blob and triggers a browser download.
+   */
   const downloadThumbnail = async () => {
     if (!thumbnail) return;
     setDownloading(true);
@@ -123,10 +159,18 @@ export default function HomePage() {
     }
   };
 
+  /**
+   * Copies the current YouTube URL to the system clipboard.
+   * Shows a temporary success state.
+   */
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(url);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    const videoId = extractVideoId(url);
+    if (videoId) {
+      const shareUrl = `${window.location.origin}${window.location.pathname}?v=${videoId}`;
+      navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   };
 
   return (
@@ -244,7 +288,7 @@ export default function HomePage() {
                       onClick={copyToClipboard}
                       className="h-12 w-full text-zinc-400 hover:text-white rounded-xl hover:bg-white/5"
                     >
-                      {copied ? "Link Copied" : "Copy Link"}
+                      {copied ? "Link Copied" : "Copy Shared Link"}
                     </Button>
                   </div>
                 </div>

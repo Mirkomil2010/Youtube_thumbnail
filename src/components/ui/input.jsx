@@ -1,6 +1,16 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
 
+/**
+ * Input component that renders a styled input element with support for ref forwarding.
+ * 
+ * @component
+ * @param {Object} props - The component props
+ * @param {string} [props.className] - Additional class names to apply to the input
+ * @param {string} [props.type] - The type attribute of the input element
+ * @param {React.Ref<HTMLInputElement>} ref - The ref to be forwarded to the input element
+ * @returns {JSX.Element} The rendered input element
+ */
 const Input = React.forwardRef(({ className, type, ...props }, ref) => {
     return (
         (<input
